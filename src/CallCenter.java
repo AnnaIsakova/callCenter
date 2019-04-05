@@ -23,7 +23,12 @@ public class CallCenter {
 
         Call call = new Call("Where is my avocado?");
         processCall(call);
-        secretary1.endCall();
+
+        System.out.println(freeSecretaries);
+        System.out.println(freeManagers);
+        System.out.println(freeDirs);
+
+        secretary1.endCall(() -> freeSecretaries.add(secretary1));
 
         System.out.println(freeSecretaries);
         System.out.println(freeManagers);

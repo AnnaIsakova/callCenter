@@ -17,9 +17,10 @@ public class Worker {
         System.out.println(this.name + " is answering the call \"" + call.text + "\"");
     }
 
-    void endCall() {
+    void endCall(Runnable runnable) {
         System.out.println(this.name + " isEnding the call \"" + this.call.text + "\"");
         this.busy = false;
+        runnable.run();
     }
 
     enum Type {
