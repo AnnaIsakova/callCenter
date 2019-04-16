@@ -37,17 +37,28 @@ public class CallCenter {
 
     static void processCall(Call call){
         if (freeSecretaries.size() > 0){
-            freeSecretaries.get(0).answerCall(call);
-            freeSecretaries.remove(0);
+            answer(call, freeSecretaries);
         } else if (freeManagers.size() > 0) {
-            freeManagers.get(0).answerCall(call);
-            freeManagers.remove(0);
+            answer(call, freeManagers);
         } else if (freeDirs.size() > 0) {
-            freeDirs.get(0).answerCall(call);
-            freeDirs.remove(0);
+            answer(call, freeDirs);
         } else {
             calls.add(call);
         }
     }
 
+    static void answer(Call call, List<Worker> workers){
+        workers.get(0).answerCall(call);
+        workers.remove(0);
+    }
+
+    static void endCall(Worker worker){
+        if (worker.type.equals(Worker.Type.SECRETARY)) {
+            worker.endCall(() -> freeSecretaries.add(secretary1));
+        } else if (worker.type.equals(Worker.Type.MANAGER)) {
+            worker.endCall(() -> freeManagers.add(secretary1));
+        } else if (worker.type.equals(Worker.Type.DIRECTOR)) {
+            worker.endCall(() -> freeDirs.add(secretary1));
+        }
+    }
 }
