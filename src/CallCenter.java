@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class CallCenter {
@@ -9,56 +12,109 @@ public class CallCenter {
     static Worker dir1 = new Worker("Dir1", Worker.Type.DIRECTOR);
     static Worker dir2 = new Worker("Dir2", Worker.Type.DIRECTOR);
 
-    static List<Worker> freeSecretaries = new LinkedList<>(Arrays.asList(secretary1, secretary2));
-    static List<Worker> freeManagers = new LinkedList<>(Arrays.asList(manager1, manager2));
-    static List<Worker> freeDirs = new LinkedList<>(Arrays.asList(dir1, dir2));
+    static List<Worker> freeSecretaries = new LinkedList<>(Arrays.asList(secretary1));
+    static List<Worker> freeManagers = new LinkedList<>(Arrays.asList(manager1));
+    static List<Worker> freeDirs = new LinkedList<>(Arrays.asList(dir1));
+
+    static List<Worker> busySecretaries = new LinkedList<>();
+    static List<Worker> busyManagers = new LinkedList<>();
+    static List<Worker> busyDirs = new LinkedList<>();
 
     static Queue<Call> calls = new PriorityQueue<>();
 
-    public static void main(String[] args) {
+    //args:
+    // -q Text -> create call with text
+    // -e workerType index -> end call for worker type at index
+    // -exit -> exit
+    public static void main(String[] args) throws IOException {
 
-        System.out.println(freeSecretaries);
-        System.out.println(freeManagers);
-        System.out.println(freeDirs);
+        Scanner scanner = new Scanner(System.in);
 
-        Call call = new Call("Where is my avocado?");
-        processCall(call);
+        while (true) {
 
-        System.out.println(freeSecretaries);
-        System.out.println(freeManagers);
-        System.out.println(freeDirs);
+            printFreeWorkers();
 
-        secretary1.endCall(() -> freeSecretaries.add(secretary1));
+            System.out.println();
 
-        System.out.println(freeSecretaries);
-        System.out.println(freeManagers);
-        System.out.println(freeDirs);
+            System.out.print("Enter command : ");
+            String input = scanner.nextLine();
+
+            if ("-exit".equals(input)) {
+                System.out.println("Exit!");
+                break;
+            } else if (input.startsWith("-q")) {
+                Call call = new Call(input.substring(3));
+                processCall(call);
+            }
+            else if (input.startsWith("-e")) {
+                String[] attrs = input.split(" ");
+                if (Worker.Type.fromValue(attrs[1]).equals(Worker.Type.SECRETARY)) {
+                    endCall(busySecretaries.get(Integer.parseInt(attrs[2])));
+                } else if (Worker.Type.fromValue(attrs[1]).equals(Worker.Type.MANAGER)) {
+                    endCall(busyManagers.get(Integer.parseInt(attrs[2])));
+                } else if (Worker.Type.fromValue(attrs[1]).equals(Worker.Type.DIRECTOR)) {
+                    endCall(busyDirs.get(Integer.parseInt(attrs[2])));
+                }
+            }
+
+            printBusyWorkers();
+            System.out.println();
+            System.out.println("Calls in queue: " + calls);
+            System.out.println("==============================================================");
+        }
+
+        scanner.close();
     }
 
     static void processCall(Call call){
         if (freeSecretaries.size() > 0){
-            answer(call, freeSecretaries);
+            answer(call, freeSecretaries, busySecretaries);
         } else if (freeManagers.size() > 0) {
-            answer(call, freeManagers);
+            answer(call, freeManagers, busyManagers);
         } else if (freeDirs.size() > 0) {
-            answer(call, freeDirs);
+            answer(call, freeDirs, busyDirs);
         } else {
             calls.add(call);
         }
     }
 
-    static void answer(Call call, List<Worker> workers){
-        workers.get(0).answerCall(call);
-        workers.remove(0);
+    static void answer(Call call, List<Worker> freeWorkers, List<Worker> busyWorkers){
+        freeWorkers.get(0).answerCall(call);
+        busyWorkers.add(freeWorkers.get(0));
+        freeWorkers.remove(0);
     }
 
     static void endCall(Worker worker){
         if (worker.type.equals(Worker.Type.SECRETARY)) {
-            worker.endCall(() -> freeSecretaries.add(secretary1));
+            worker.endCall(() -> {
+                freeSecretaries.add(worker);
+                busySecretaries.remove(worker);
+            });
         } else if (worker.type.equals(Worker.Type.MANAGER)) {
-            worker.endCall(() -> freeManagers.add(secretary1));
+            worker.endCall(() -> {
+                freeManagers.add(worker);
+                busyManagers.remove(worker);
+            });
         } else if (worker.type.equals(Worker.Type.DIRECTOR)) {
-            worker.endCall(() -> freeDirs.add(secretary1));
+            worker.endCall(() -> {
+                freeDirs.add(worker);
+                busyDirs.remove(worker);
+            });
         }
+        if (calls.size() > 0) {
+            processCall(calls.poll());
+        }
+    }
+
+    static void printFreeWorkers(){
+        System.out.println("Free secretaries: " + freeSecretaries);
+        System.out.println("Free managers: " + freeManagers);
+        System.out.println("Free dirs: " + freeDirs);
+    }
+
+    static void printBusyWorkers(){
+        System.out.println("Busy secretaries: " + busySecretaries);
+        System.out.println("Busy managers: " + busyManagers);
+        System.out.println("Busy dirs: " + busyDirs);
     }
 }

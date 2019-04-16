@@ -24,9 +24,24 @@ public class Worker {
     }
 
     enum Type {
-        SECRETARY,
-        MANAGER,
-        DIRECTOR
+        SECRETARY ("s"),
+        MANAGER ("m"),
+        DIRECTOR ("d");
+
+        String value;
+
+        Type(String v) {
+            value = v;
+        }
+
+        public static Type fromValue(String v) {
+            for (Type c : Type.values()) {
+                if (c.value.equals(v)) {
+                    return c;
+                }
+            }
+            throw new IllegalArgumentException(v);
+        }
     }
 
     @Override
